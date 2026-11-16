@@ -1,25 +1,18 @@
-
 import 'package:flutter/material.dart';
+
 import '../models/menu_model.dart';
 
 class MenuCard extends StatelessWidget {
   final MenuModel menu;
   final VoidCallback onTap;
 
-  const MenuCard({
-    super.key,
-    required this.menu,
-    required this.onTap,
-  });
+  const MenuCard({super.key, required this.menu, required this.onTap});
 
   static const Color primaryColor = Color(0xFF176B78);
   static const Color accentColor = Color(0xFF4CA3B5);
 
   String formatRupiah(int price) {
-    return 'Rp ${price.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    )}';
+    return 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
   }
 
   @override
@@ -28,9 +21,7 @@ class MenuCard extends StatelessWidget {
       color: Colors.white,
       elevation: 2,
       margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -40,9 +31,9 @@ class MenuCard extends StatelessWidget {
             SizedBox(
               height: 125,
               width: double.infinity,
-              child: menu.imageUrl.isNotEmpty
+              child: menu.fotoUrl.isNotEmpty
                   ? Image.network(
-                      menu.imageUrl,
+                      menu.fotoUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) {
                         return _imagePlaceholder();
@@ -58,7 +49,7 @@ class MenuCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      menu.name,
+                      menu.nama,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
@@ -71,7 +62,7 @@ class MenuCard extends StatelessWidget {
                     const SizedBox(height: 5),
 
                     Text(
-                      formatRupiah(menu.price),
+                      formatRupiah(menu.harga),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
@@ -91,7 +82,7 @@ class MenuCard extends StatelessWidget {
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
-                            menu.canteenLocation,
+                            menu.namaKantin,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -142,18 +133,11 @@ class MenuCard extends StatelessWidget {
       child: const Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.restaurant,
-            color: primaryColor,
-            size: 45,
-          ),
+          Icon(Icons.restaurant, color: primaryColor, size: 45),
           SizedBox(height: 5),
           Text(
             'Foto Menu',
-            style: TextStyle(
-              color: primaryColor,
-              fontSize: 11,
-            ),
+            style: TextStyle(color: primaryColor, fontSize: 11),
           ),
         ],
       ),
