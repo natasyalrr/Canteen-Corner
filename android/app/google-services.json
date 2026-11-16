@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "245960450436",
+    "project_id": "canteencorner-f1784",
+    "storage_bucket": "canteencorner-f1784.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:245960450436:android:49713de2de38d97cd77dd1",
+        "android_client_info": {
+          "package_name": "com.example.canteen_corner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC98wBbndAVLiB3qXsUSgLx4dwLykPyGb8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
