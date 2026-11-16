@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../models/menu_model.dart';
@@ -18,127 +17,140 @@ class _MenuScreenState extends State<MenuScreen> {
   static const Color accentColor = Color(0xFF4CA3B5);
   static const Color backgroundColor = Color(0xFFEEE8E4);
 
-  final TextEditingController searchController =
-      TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   String selectedCategory = 'Semua';
   String searchQuery = '';
   String selectedLocation = 'Semua Kantin';
 
-  RangeValues selectedPrice =
-      const RangeValues(0, 50000);
+  RangeValues selectedPrice = const RangeValues(0, 50000);
 
   // DATA SEMENTARA UNTUK PREVIEW
   final List<MenuModel> menus = [
     const MenuModel(
       id: '1',
-      name: 'Nasi Goreng',
-      description: 'Nasi goreng spesial dengan telur dan sayuran.',
-      price: 15000,
-      category: 'Makanan',
-      canteenLocation: 'Kantin Pusat',
+      kantinId: 'kantin_pusat',
+      nama: 'Nasi Goreng',
+      deskripsi: 'Nasi goreng spesial dengan telur dan sayuran.',
+      harga: 15000,
+      kategori: 'Makanan',
+      stok: 20,
+      namaKantin: 'Kantin Pusat',
     ),
     const MenuModel(
       id: '2',
-      name: 'Mie Ayam',
-      description: 'Mie ayam dengan topping ayam dan sayuran.',
-      price: 12000,
-      category: 'Makanan',
-      canteenLocation: 'Kantin Pusat',
+      kantinId: 'kantin_pusat',
+      nama: 'Mie Ayam',
+      deskripsi: 'Mie ayam dengan topping ayam dan sayuran.',
+      harga: 12000,
+      kategori: 'Makanan',
+      stok: 15,
+      namaKantin: 'Kantin Pusat',
     ),
     const MenuModel(
       id: '3',
-      name: 'Es Teh',
-      description: 'Minuman teh segar.',
-      price: 5000,
-      category: 'Minuman',
-      canteenLocation: 'Kantin Utara',
+      kantinId: 'kantin_utara',
+      nama: 'Es Teh',
+      deskripsi: 'Minuman teh segar.',
+      harga: 5000,
+      kategori: 'Minuman',
+      stok: 30,
+      namaKantin: 'Kantin Utara',
     ),
     const MenuModel(
       id: '4',
-      name: 'Kentang Goreng',
-      description: 'Kentang goreng renyah.',
-      price: 10000,
-      category: 'Snack',
-      canteenLocation: 'Kantin Selatan',
+      kantinId: 'kantin_selatan',
+      nama: 'Kentang Goreng',
+      deskripsi: 'Kentang goreng renyah.',
+      harga: 10000,
+      kategori: 'Snack',
+      stok: 12,
+      namaKantin: 'Kantin Selatan',
     ),
     const MenuModel(
       id: '5',
-      name: 'Ayam Geprek',
-      description: 'Ayam crispy dengan sambal pedas.',
-      price: 18000,
-      category: 'Makanan',
-      canteenLocation: 'Kantin Utara',
+      kantinId: 'kantin_utara',
+      nama: 'Ayam Geprek',
+      deskripsi: 'Ayam crispy dengan sambal pedas.',
+      harga: 18000,
+      kategori: 'Makanan',
+      stok: 10,
+      namaKantin: 'Kantin Utara',
     ),
     const MenuModel(
       id: '6',
-      name: 'Jus Alpukat',
-      description: 'Jus alpukat segar.',
-      price: 12000,
-      category: 'Minuman',
-      canteenLocation: 'Kantin Selatan',
+      kantinId: 'kantin_selatan',
+      nama: 'Jus Alpukat',
+      deskripsi: 'Jus alpukat segar.',
+      harga: 12000,
+      kategori: 'Minuman',
+      stok: 8,
+      namaKantin: 'Kantin Selatan',
     ),
     const MenuModel(
       id: '7',
-      name: 'Nasi Ayam',
-      description: 'Nasi dengan ayam goreng dan sambal.',
-      price: 17000,
-      category: 'Makanan',
-      canteenLocation: 'Kantin Pusat',
+      kantinId: 'kantin_pusat',
+      nama: 'Nasi Ayam',
+      deskripsi: 'Nasi dengan ayam goreng dan sambal.',
+      harga: 17000,
+      kategori: 'Makanan',
+      stok: 18,
+      namaKantin: 'Kantin Pusat',
     ),
     const MenuModel(
       id: '8',
-      name: 'Roti Bakar',
-      description: 'Roti bakar dengan berbagai topping.',
-      price: 10000,
-      category: 'Snack',
-      canteenLocation: 'Kantin Utara',
+      kantinId: 'kantin_utara',
+      nama: 'Roti Bakar',
+      deskripsi: 'Roti bakar dengan berbagai topping.',
+      harga: 10000,
+      kategori: 'Snack',
+      stok: 14,
+      namaKantin: 'Kantin Utara',
     ),
     const MenuModel(
       id: '9',
-      name: 'Es Jeruk',
-      description: 'Minuman jeruk segar.',
-      price: 6000,
-      category: 'Minuman',
-      canteenLocation: 'Kantin Selatan',
+      kantinId: 'kantin_selatan',
+      nama: 'Es Jeruk',
+      deskripsi: 'Minuman jeruk segar.',
+      harga: 6000,
+      kategori: 'Minuman',
+      stok: 25,
+      namaKantin: 'Kantin Selatan',
     ),
     const MenuModel(
       id: '10',
-      name: 'Bakso',
-      description: 'Bakso dengan kuah hangat.',
-      price: 14000,
-      category: 'Makanan',
-      canteenLocation: 'Kantin Pusat',
+      kantinId: 'kantin_pusat',
+      nama: 'Bakso',
+      deskripsi: 'Bakso dengan kuah hangat.',
+      harga: 14000,
+      kategori: 'Makanan',
+      stok: 16,
+      namaKantin: 'Kantin Pusat',
     ),
   ];
 
+  // FILTER MENU
   List<MenuModel> get filteredMenus {
     return menus.where((menu) {
       final matchesSearch =
-          menu.name.toLowerCase().contains(
-                searchQuery.toLowerCase(),
-              ) ||
-          menu.canteenLocation.toLowerCase().contains(
-                searchQuery.toLowerCase(),
-              );
+          menu.nama.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          menu.namaKantin.toLowerCase().contains(searchQuery.toLowerCase());
 
       final matchesCategory =
-          selectedCategory == 'Semua' ||
-          menu.category == selectedCategory;
+          selectedCategory == 'Semua' || menu.kategori == selectedCategory;
 
       final matchesLocation =
           selectedLocation == 'Semua Kantin' ||
-          menu.canteenLocation == selectedLocation;
+          menu.namaKantin == selectedLocation;
 
       final matchesPrice =
-          menu.price >= selectedPrice.start &&
-          menu.price <= selectedPrice.end;
+          menu.harga >= selectedPrice.start && menu.harga <= selectedPrice.end;
 
       return matchesSearch &&
           matchesCategory &&
           matchesLocation &&
           matchesPrice &&
-          menu.isAvailable;
+          menu.tersedia;
     }).toList();
   }
 
@@ -148,13 +160,12 @@ class _MenuScreenState extends State<MenuScreen> {
     super.dispose();
   }
 
-  String formatRupiah(int price) {
-    return 'Rp ${price.toString().replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    )}';
+  // FORMAT HARGA RUPIAH
+  String formatRupiah(int harga) {
+    return 'Rp ${harga.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
   }
 
+  // FILTER HARGA
   void showPriceFilter() {
     RangeValues temporaryPrice = selectedPrice;
 
@@ -223,8 +234,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        selectedPrice =
-                            const RangeValues(0, 50000);
+                        selectedPrice = const RangeValues(0, 50000);
                       });
                       Navigator.pop(context);
                     },
@@ -239,6 +249,7 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
+  // FILTER LOKASI KANTIN
   void showLocationFilter() {
     showModalBottomSheet(
       context: context,
@@ -285,6 +296,7 @@ class _MenuScreenState extends State<MenuScreen> {
     );
   }
 
+  // DETAIL MENU
   void showMenuDetail(MenuModel menu) {
     showModalBottomSheet(
       context: context,
@@ -317,18 +329,17 @@ class _MenuScreenState extends State<MenuScreen> {
                     color: const Color(0xFFDDF0F1),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: menu.imageUrl.isNotEmpty
+                  child: menu.fotoUrl.isNotEmpty
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(16),
                           child: Image.network(
-                            menu.imageUrl,
+                            menu.fotoUrl,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(
-                                  Icons.restaurant,
-                                  size: 60,
-                                  color: primaryColor,
-                                ),
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.restaurant,
+                              size: 60,
+                              color: primaryColor,
+                            ),
                           ),
                         )
                       : const Icon(
@@ -341,7 +352,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 const SizedBox(height: 18),
 
                 Text(
-                  menu.name,
+                  menu.nama,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
@@ -352,7 +363,7 @@ class _MenuScreenState extends State<MenuScreen> {
                 const SizedBox(height: 8),
 
                 Text(
-                  formatRupiah(menu.price),
+                  formatRupiah(menu.harga),
                   style: const TextStyle(
                     fontSize: 19,
                     fontWeight: FontWeight.bold,
@@ -362,21 +373,17 @@ class _MenuScreenState extends State<MenuScreen> {
 
                 const SizedBox(height: 12),
 
-                Text(
-                  menu.description,
-                  style: const TextStyle(fontSize: 14),
-                ),
+                Text(menu.deskripsi, style: const TextStyle(fontSize: 14)),
 
                 const SizedBox(height: 12),
 
                 Row(
                   children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: primaryColor,
-                    ),
+                    const Icon(Icons.location_on, color: primaryColor),
                     const SizedBox(width: 5),
-                    Text(menu.canteenLocation),
+                    Text(
+                      menu.namaKantin.isNotEmpty ? menu.namaKantin : 'Kantin',
+                    ),
                   ],
                 ),
 
@@ -402,9 +409,7 @@ class _MenuScreenState extends State<MenuScreen> {
         elevation: 0,
         title: const Text(
           'Menu Kantin',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
 
@@ -453,10 +458,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: showPriceFilter,
-                      icon: const Icon(
-                        Icons.price_change_outlined,
-                        size: 18,
-                      ),
+                      icon: const Icon(Icons.price_change_outlined, size: 18),
                       label: const Text('Filter Harga'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: primaryColor,
@@ -469,10 +471,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: showLocationFilter,
-                      icon: const Icon(
-                        Icons.location_on_outlined,
-                        size: 18,
-                      ),
+                      icon: const Icon(Icons.location_on_outlined, size: 18),
                       label: const Text('Lokasi Kantin'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: primaryColor,
@@ -505,8 +504,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         setState(() {
                           selectedCategory = 'Semua';
                           selectedLocation = 'Semua Kantin';
-                          selectedPrice =
-                              const RangeValues(0, 50000);
+                          selectedPrice = const RangeValues(0, 50000);
                         });
                       },
                       child: const Text('Reset'),
@@ -545,23 +543,21 @@ class _MenuScreenState extends State<MenuScreen> {
                           final columns = width >= 1200
                               ? 5
                               : width >= 800
-                                  ? 3
-                                  : 2;
+                              ? 3
+                              : 2;
 
-                          final ratio = width >= 800
-                              ? 0.85
-                              : 0.68;
+                          final ratio = width >= 800 ? 0.85 : 0.68;
 
                           return GridView.builder(
                             itemCount: displayedMenus.length,
 
                             gridDelegate:
                                 SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: columns,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
-                              childAspectRatio: ratio,
-                            ),
+                                  crossAxisCount: columns,
+                                  crossAxisSpacing: 12,
+                                  mainAxisSpacing: 12,
+                                  childAspectRatio: ratio,
+                                ),
 
                             itemBuilder: (context, index) {
                               final menu = displayedMenus[index];
