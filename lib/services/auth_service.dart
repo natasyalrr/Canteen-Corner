@@ -11,16 +11,19 @@ class AuthService {
     required String name,
     required String email,
     required String password,
-    String role = 'student', // 'student' atau 'seller'
+    String nim = '',
+    String role = 'mahasiswa', // 'mahasiswa' atau 'penjual'
   }) async {
     final cred = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
     await _db.collection('users').doc(cred.user!.uid).set({
-      'name': name,
+      'uid': cred.user!.uid,
+      'nama': name,
       'email': email,
       'role': role,
+      'nim': nim,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
@@ -32,7 +35,7 @@ class AuthService {
 
   Future<String> getRole(String uid) async {
     final doc = await _db.collection('users').doc(uid).get();
-    return (doc.data()?['role'] as String?) ?? 'student';
+    return (doc.data()?['role'] as String?) ?? 'mahasiswa';
   }
 
   static String errorMessage(FirebaseAuthException e) {

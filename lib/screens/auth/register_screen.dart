@@ -14,15 +14,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameC = TextEditingController();
   final _emailC = TextEditingController();
+  final _nimC = TextEditingController();
   final _passC = TextEditingController();
   final _auth = AuthService();
-  String _role = 'student';
+  String _role = 'mahasiswa';
   bool _loading = false;
 
   @override
   void dispose() {
     _nameC.dispose();
     _emailC.dispose();
+    _nimC.dispose();
     _passC.dispose();
     super.dispose();
   }
@@ -35,6 +37,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         name: _nameC.text.trim(),
         email: _emailC.text.trim(),
         password: _passC.text,
+        nim: _nimC.text.trim(),
         role: _role,
       );
       // Setelah daftar, Firebase otomatis login. Kembali ke root supaya
@@ -82,6 +85,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               const SizedBox(height: 16),
               TextFormField(
+                controller: _nimC,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'NIM (khusus mahasiswa)',
+                  prefixIcon: Icon(Icons.numbers),
+                ),
+                validator: (v) =>
+                    (_role == 'mahasiswa' && (v == null || v.trim().isEmpty))
+                    ? 'NIM wajib diisi untuk mahasiswa'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
                 controller: _passC,
                 obscureText: true,
                 decoration: const InputDecoration(
@@ -100,13 +116,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: Icon(Icons.badge_outlined),
                 ),
                 items: const [
-                  DropdownMenuItem(value: 'student', child: Text('Mahasiswa')),
                   DropdownMenuItem(
-                    value: 'seller',
+                    value: 'mahasiswa',
+                    child: Text('Mahasiswa'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'penjual',
                     child: Text('Penjual (Stan)'),
                   ),
                 ],
-                onChanged: (v) => setState(() => _role = v ?? 'student'),
+                onChanged: (v) => setState(() => _role = v ?? 'mahasiswa'),
               ),
               const SizedBox(height: 24),
               SizedBox(
