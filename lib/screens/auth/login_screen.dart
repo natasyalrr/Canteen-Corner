@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
-import '../home/home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,7 +16,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _auth = AuthService();
   bool _obscure = true;
+  bool _loading = false;
 
   @override
   void dispose() {
@@ -22,14 +27,19 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // TODO: ganti dengan Firebase Auth (dikerjakan Backend 1)
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
-    );
+    setState(() => _loading = true);
+    try {
+      await _auth.login(_emailController.text.trim(), _passwordController.text);
+      // pindah ke Home otomatis oleh StreamBuilder di main.dart
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(AuthService.errorMessage(e))));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -116,8 +126,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: _login,
-                    child: const Text('Masuk'),
+                    onPressed: _loading ? null : _login,
+                    child: _loading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Masuk'),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -125,14 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const Text('Belum punya akun? '),
                       GestureDetector(
-                        onTap: () {
-                          // TODO: arahkan ke halaman Register
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Halaman daftar menyusul'),
-                            ),
-                          );
-                        },
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const RegisterScreen(),
+                          ),
+                        ),
                         child: const Text(
                           'Daftar',
                           style: TextStyle(
