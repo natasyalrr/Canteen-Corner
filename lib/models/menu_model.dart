@@ -1,57 +1,53 @@
+/// Koleksi `menus`: kantinId, nama, harga, kategori, stok, fotoUrl, tersedia
+/// (+ deskripsi, opsional).
 class MenuModel {
   final String id;
   final String kantinId;
   final String nama;
-  final String deskripsi;
   final int harga;
   final String kategori;
   final int stok;
   final String fotoUrl;
   final bool tersedia;
-
-  // Nama kantin untuk ditampilkan di antarmuka.
-  // Nilai ini tidak disimpan di dokumen menus.
-  final String namaKantin;
+  final String deskripsi;
 
   const MenuModel({
     required this.id,
     required this.kantinId,
     required this.nama,
-    this.deskripsi = '',
     required this.harga,
     required this.kategori,
-    this.stok = 0,
+    this.stok = 99,
     this.fotoUrl = '',
     this.tersedia = true,
-    this.namaKantin = '',
+    this.deskripsi = '',
   });
 
-  // Mengubah data Firestore menjadi objek MenuModel.
-  factory MenuModel.fromMap(Map<String, dynamic> data, String documentId) {
+  /// Menu bisa dipesan hanya jika ditandai tersedia dan stok masih ada.
+  bool get bisaDipesan => tersedia && stok > 0;
+
+  factory MenuModel.fromMap(Map<String, dynamic> d, String id) {
     return MenuModel(
-      id: documentId,
-      kantinId: data['kantinId'] ?? '',
-      nama: data['nama'] ?? '',
-      deskripsi: data['deskripsi'] ?? '',
-      harga: (data['harga'] as num?)?.toInt() ?? 0,
-      kategori: data['kategori'] ?? '',
-      stok: (data['stok'] as num?)?.toInt() ?? 0,
-      fotoUrl: data['fotoUrl'] ?? '',
-      tersedia: data['tersedia'] ?? true,
+      id: id,
+      kantinId: (d['kantinId'] as String?) ?? '',
+      nama: (d['nama'] as String?) ?? '',
+      harga: (d['harga'] as num?)?.toInt() ?? 0,
+      kategori: (d['kategori'] as String?) ?? '',
+      stok: (d['stok'] as num?)?.toInt() ?? 99,
+      fotoUrl: (d['fotoUrl'] as String?) ?? '',
+      tersedia: (d['tersedia'] as bool?) ?? true,
+      deskripsi: (d['deskripsi'] as String?) ?? '',
     );
   }
 
-  // Mengubah objek MenuModel menjadi Map untuk Firestore.
-  Map<String, dynamic> toMap() {
-    return {
-      'kantinId': kantinId,
-      'nama': nama,
-      'deskripsi': deskripsi,
-      'harga': harga,
-      'kategori': kategori,
-      'stok': stok,
-      'fotoUrl': fotoUrl,
-      'tersedia': tersedia,
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'kantinId': kantinId,
+        'nama': nama,
+        'harga': harga,
+        'kategori': kategori,
+        'stok': stok,
+        'fotoUrl': fotoUrl,
+        'tersedia': tersedia,
+        'deskripsi': deskripsi,
+      };
 }

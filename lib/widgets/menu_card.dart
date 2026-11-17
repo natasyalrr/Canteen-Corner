@@ -1,22 +1,27 @@
 import 'package:flutter/material.dart';
 
 import '../models/menu_model.dart';
+import '../theme/app_theme.dart';
+import '../utils/format.dart';
+import 'menu_image.dart';
 
 class MenuCard extends StatelessWidget {
   final MenuModel menu;
+  final String kantinNama;
   final VoidCallback onTap;
+  final VoidCallback onAdd;
 
-  const MenuCard({super.key, required this.menu, required this.onTap});
-
-  static const Color primaryColor = Color(0xFF176B78);
-  static const Color accentColor = Color(0xFF4CA3B5);
-
-  String formatRupiah(int price) {
-    return 'Rp ${price.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (match) => '${match[1]}.')}';
-  }
+  const MenuCard({
+    super.key,
+    required this.menu,
+    required this.kantinNama,
+    required this.onTap,
+    required this.onAdd,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final bisa = menu.bisaDipesan;
     return Card(
       color: Colors.white,
       elevation: 2,
@@ -29,19 +34,28 @@ class MenuCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              height: 125,
+              height: 112,
               width: double.infinity,
-              child: menu.fotoUrl.isNotEmpty
-                  ? Image.network(
-                      menu.fotoUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) {
-                        return _imagePlaceholder();
-                      },
-                    )
-                  : _imagePlaceholder(),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  MenuImage(url: menu.fotoUrl, iconSize: 40),
+                  if (!bisa)
+                    Container(
+                      color: Colors.black54,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Habis',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(10),
@@ -55,64 +69,53 @@ class MenuCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: primaryColor,
+                        color: AppColors.primary,
                       ),
                     ),
-
-                    const SizedBox(height: 5),
-
+                    const SizedBox(height: 4),
                     Text(
                       formatRupiah(menu.harga),
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: accentColor,
+                        color: AppColors.cta,
                       ),
                     ),
-
-                    const SizedBox(height: 5),
-
+                    const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          size: 14,
-                          color: Colors.grey,
-                        ),
+                        const Icon(Icons.location_on_outlined,
+                            size: 14, color: Colors.grey),
                         const SizedBox(width: 3),
                         Expanded(
                           child: Text(
-                            menu.namaKantin,
+                            kantinNama,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey,
-                            ),
+                                fontSize: 11, color: Colors.grey),
                           ),
                         ),
                       ],
                     ),
-
                     const Spacer(),
-
                     SizedBox(
                       width: double.infinity,
                       height: 34,
-                      child: ElevatedButton(
-                        onPressed: onTap,
+                      child: ElevatedButton.icon(
+                        onPressed: bisa ? onAdd : null,
+                        icon: const Icon(Icons.add_shopping_cart, size: 16),
+                        label: Text(bisa ? 'Tambah' : 'Habis'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
+                          minimumSize: const Size.fromHeight(34),
                           padding: EdgeInsets.zero,
+                          disabledBackgroundColor: Colors.grey.shade300,
+                          disabledForegroundColor: Colors.grey,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(9),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        ),
-                        child: const Text(
-                          'Lihat Detail',
-                          style: TextStyle(fontSize: 12),
+                          textStyle: const TextStyle(
+                              fontSize: 12, fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -122,24 +125,6 @@ class MenuCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _imagePlaceholder() {
-    return Container(
-      color: const Color(0xFFDDF0F1),
-      width: double.infinity,
-      child: const Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.restaurant, color: primaryColor, size: 45),
-          SizedBox(height: 5),
-          Text(
-            'Foto Menu',
-            style: TextStyle(color: primaryColor, fontSize: 11),
-          ),
-        ],
       ),
     );
   }

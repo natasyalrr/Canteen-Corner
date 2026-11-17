@@ -1,5 +1,6 @@
-
 import 'package:flutter/material.dart';
+
+import '../theme/app_theme.dart';
 
 class MenuSearch extends StatelessWidget {
   final TextEditingController controller;
@@ -11,24 +12,16 @@ class MenuSearch extends StatelessWidget {
     required this.onChanged,
   });
 
-  static const Color primaryColor = Color(0xFF176B78);
-  static const Color accentColor = Color(0xFF4CA3B5);
-
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
       onChanged: onChanged,
+      textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: 'Cari makanan atau minuman...',
-        hintStyle: const TextStyle(
-          color: Colors.grey,
-          fontSize: 14,
-        ),
-        prefixIcon: const Icon(
-          Icons.search,
-          color: primaryColor,
-        ),
+        hintText: 'Cari makanan, minuman, atau kantin',
+        hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
+        prefixIcon: const Icon(Icons.search, color: AppColors.primary),
         suffixIcon: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () {
@@ -36,23 +29,8 @@ class MenuSearch extends StatelessWidget {
             onChanged('');
           },
         ),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(
-            color: accentColor,
-            width: 1.5,
-          ),
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }

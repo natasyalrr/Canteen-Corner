@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/cart_icon_button.dart';
+import '../cart/keranjang_screen.dart';
+import '../menu/menu_screen.dart';
+import '../order/riwayat_pesanan_view.dart';
 
 class Kantin {
   final String nama;
@@ -39,8 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const Text('Mau makan apa hari ini?'),
         const SizedBox(height: 16),
-        const TextField(
-          decoration: InputDecoration(
+        TextField(
+          textInputAction: TextInputAction.search,
+          onSubmitted: (value) => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MenuScreen(initialQuery: value),
+            ),
+          ),
+          decoration: const InputDecoration(
             hintText: 'Cari kantin atau menu',
             prefixIcon: Icon(Icons.search),
           ),
@@ -77,6 +88,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildKantinCard(Kantin k) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MenuScreen(initialKantinNama: k.nama),
+        ),
+      ),
+      child: _kantinCardBody(k),
+    );
+  }
+
+  Widget _kantinCardBody(Kantin k) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -143,29 +167,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text(titles[_navIndex])),
-      body: _navIndex == 0
-          ? _buildHome()
-          : Center(child: Text('Halaman ${titles[_navIndex]} menyusul')),
+      body: switch (_navIndex) {
+        0 => _buildHome(),
+        1 => const RiwayatPesananView(),
+        2 => KeranjangView(
+            onLihatMenu: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MenuScreen()),
+            ),
+          ),
+        _ => Center(child: Text('Halaman ${titles[_navIndex]} menyusul')),
+      },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
         onDestinationSelected: (i) => setState(() => _navIndex = i),
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Beranda',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.receipt_long_outlined),
             selectedIcon: Icon(Icons.receipt_long),
             label: 'Pesanan',
           ),
           NavigationDestination(
-            icon: Icon(Icons.shopping_cart_outlined),
-            selectedIcon: Icon(Icons.shopping_cart),
+            icon: const CartBadgeIcon(),
+            selectedIcon: const CartBadgeIcon(selected: true),
             label: 'Keranjang',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.person_outline),
             selectedIcon: Icon(Icons.person),
             label: 'Profil',
