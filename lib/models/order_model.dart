@@ -1,92 +1,148 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'cart_item.dart';
+
+/// Nilai field `statusOrder`. Dipakai bersama oleh sisi mahasiswa dan penjual.
+class OrderStatus {
+  static const menungguBayar = 'menunggu_bayar';
+  static const dibayar = 'dibayar';
+  static const diproses = 'diproses';
+  static const siapDiambil = 'siap_diambil';
+  static const selesai = 'selesai';
+  static const dibatalkan = 'dibatalkan';
+  static const kedaluwarsa = 'kedaluwarsa';
+
+  /// Urutan alur normal pesanan.
+  static const alur = [menungguBayar, dibayar, diproses, siapDiambil, selesai];
+
+  static String label(String s) {
+    switch (s) {
+      case menungguBayar:
+        return 'Menunggu Bayar';
+      case dibayar:
+        return 'Dibayar';
+      case diproses:
+        return 'Diproses';
+      case siapDiambil:
+        return 'Siap Diambil';
+      case selesai:
+        return 'Selesai';
+      case dibatalkan:
+        return 'Dibatalkan';
+      case kedaluwarsa:
+        return 'Kedaluwarsa';
+      default:
+        return s;
+    }
+  }
+
+  static bool aktif(String s) =>
+      s == menungguBayar || s == dibayar || s == diproses || s == siapDiambil;
+}
+
+/// Nilai field `statusBayar`.
+class PaymentStatus {
+  static const belumBayar = 'belum_bayar';
+  static const lunas = 'lunas';
+  static const kedaluwarsa = 'kedaluwarsa';
+}
+
+/// Nilai field `metodeBayar`.
+class PaymentMethod {
+  static const qris = 'qris';
+  static const ewallet = 'ewallet';
+  static const transfer = 'transfer';
+  static const tunai = 'tunai';
+
+  static String label(String m) {
+    switch (m) {
+      case qris:
+        return 'QRIS';
+      case ewallet:
+        return 'E-Wallet';
+      case transfer:
+        return 'Transfer Bank';
+      case tunai:
+        return 'Tunai';
+      default:
+        return m;
+    }
+  }
+}
+
+/// Nilai field `tipePesanan`.
+class TipePesanan {
+  static const makanDiTempat = 'makan_di_tempat';
+  static const dibawaPulang = 'dibawa_pulang';
+
+  static String label(String t) =>
+      t == dibawaPulang ? 'Dibawa pulang' : 'Makan di tempat';
+}
+
 class OrderItem {
   final String menuId;
   final String nama;
   final int harga;
-  final int jumlah;
+  final int qty;
   final String catatan;
 
   const OrderItem({
     required this.menuId,
     required this.nama,
     required this.harga,
-    required this.jumlah,
+    required this.qty,
     this.catatan = '',
   });
 
-  // Menghitung subtotal satu jenis menu
-  int get subtotal => harga * jumlah;
+  int get subtotal => harga * qty;
 
-  // Mengubah data Map menjadi objek OrderItem
-  factory OrderItem.fromMap(Map<String, dynamic> data) {
-    return OrderItem(
-      menuId: data['menuId'] as String? ?? '',
-      nama: data['nama'] as String? ?? '',
-      harga: (data['harga'] as num?)?.toInt() ?? 0,
-      jumlah: (data['jumlah'] as num?)?.toInt() ?? 0,
-      catatan: data['catatan'] as String? ?? '',
-    );
-  }
+  factory OrderItem.fromCart(CartItem c) => OrderItem(
+        menuId: c.menu.id,
+        nama: c.menu.nama,
+        harga: c.menu.harga,
+        qty: c.qty,
+        catatan: c.catatan,
+      );
 
-  // Mengubah objek OrderItem menjadi Map
-  Map<String, dynamic> toMap() {
-    return {
-      'menuId': menuId,
-      'nama': nama,
-      'harga': harga,
-      'jumlah': jumlah,
-      'catatan': catatan,
-    };
-  }
+  factory OrderItem.fromMap(Map<String, dynamic> d) => OrderItem(
+        menuId: (d['menuId'] as String?) ?? '',
+        nama: (d['nama'] as String?) ?? '',
+        harga: (d['harga'] as num?)?.toInt() ?? 0,
+        qty: (d['qty'] as num?)?.toInt() ?? 1,
+        catatan: (d['catatan'] as String?) ?? '',
+      );
+
+  Map<String, dynamic> toMap() => {
+        'menuId': menuId,
+        'nama': nama,
+        'harga': harga,
+        'qty': qty,
+        'catatan': catatan,
+      };
 }
 
+/// Koleksi `orders`.
 class OrderModel {
-  // Status pembayaran
-  static const String menungguBayar = 'menunggu_bayar';
-  static const String dibayar = 'dibayar';
-  static const String kedaluwarsa = 'kedaluwarsa';
-
-  // Status pesanan
-  static const String menungguDiproses = 'menunggu_diproses';
-  static const String diproses = 'diproses';
-  static const String siapDiambil = 'siap_diambil';
-  static const String selesai = 'selesai';
-  static const String dibatalkan = 'dibatalkan';
-
-  // Metode pembayaran
-  static const String qris = 'qris';
-  static const String eWallet = 'e_wallet';
-  static const String transferBank = 'transfer_bank';
-  static const String tunai = 'tunai';
-
-  // Tipe pesanan
-  static const String makanDiTempat = 'makan_di_tempat';
-  static const String dibawaPulang = 'dibawa_pulang';
-
-  // Identitas dan data pesanan
   final String id;
   final String userId;
   final String kantinId;
+  final String kantinNama;
   final List<OrderItem> items;
   final int total;
-
-  // Informasi transaksi
   final String metodeBayar;
   final String statusBayar;
   final String statusOrder;
   final String kodePesanan;
-
-  // Informasi pengambilan pesanan
   final String tipePesanan;
-  final DateTime? jamAmbil;
-
-  // Informasi waktu
+  final String jamAmbil;
   final DateTime? expiresAt;
-  final DateTime? createdAt;
+  final DateTime createdAt;
 
   const OrderModel({
     required this.id,
     required this.userId,
     required this.kantinId,
+    required this.kantinNama,
     required this.items,
     required this.total,
     required this.metodeBayar,
@@ -94,74 +150,49 @@ class OrderModel {
     required this.statusOrder,
     required this.kodePesanan,
     required this.tipePesanan,
-    this.jamAmbil,
-    this.expiresAt,
-    this.createdAt,
+    required this.jamAmbil,
+    required this.expiresAt,
+    required this.createdAt,
   });
 
-  // Mengubah tanggal dari Firestore menjadi DateTime
-  static DateTime? _ubahKeTanggal(dynamic nilai) {
-    if (nilai == null) return null;
+  static DateTime? _ts(dynamic v) => v is Timestamp ? v.toDate() : null;
 
-    if (nilai is DateTime) return nilai;
-
-    if (nilai is String) {
-      return DateTime.tryParse(nilai);
-    }
-
-    // Mengambil tanggal dari Firestore Timestamp
-    try {
-      final hasil = nilai.toDate();
-
-      if (hasil is DateTime) {
-        return hasil;
-      }
-    } catch (_) {
-      return null;
-    }
-
-    return null;
-  }
-
-  // Mengubah data dari Firestore menjadi objek OrderModel
-  factory OrderModel.fromMap(Map<String, dynamic> data, String documentId) {
-    final daftarItem = data['items'] as List<dynamic>? ?? [];
-
+  factory OrderModel.fromMap(Map<String, dynamic> d, String id) {
+    final rawItems = (d['items'] as List?) ?? const [];
     return OrderModel(
-      id: documentId,
-      userId: data['userId'] as String? ?? '',
-      kantinId: data['kantinId'] as String? ?? '',
-      items: daftarItem
-          .whereType<Map>()
-          .map((item) => OrderItem.fromMap(Map<String, dynamic>.from(item)))
+      id: id,
+      userId: (d['userId'] as String?) ?? '',
+      kantinId: (d['kantinId'] as String?) ?? '',
+      kantinNama: (d['kantinNama'] as String?) ?? '',
+      items: rawItems
+          .map((e) => OrderItem.fromMap(Map<String, dynamic>.from(e as Map)))
           .toList(),
-      total: (data['total'] as num?)?.toInt() ?? 0,
-      metodeBayar: data['metodeBayar'] as String? ?? '',
-      statusBayar: data['statusBayar'] as String? ?? '',
-      statusOrder: data['statusOrder'] as String? ?? '',
-      kodePesanan: data['kodePesanan'] as String? ?? '',
-      tipePesanan: data['tipePesanan'] as String? ?? '',
-      jamAmbil: _ubahKeTanggal(data['jamAmbil']),
-      expiresAt: _ubahKeTanggal(data['expiresAt']),
-      createdAt: _ubahKeTanggal(data['createdAt']),
+      total: (d['total'] as num?)?.toInt() ?? 0,
+      metodeBayar: (d['metodeBayar'] as String?) ?? PaymentMethod.tunai,
+      statusBayar: (d['statusBayar'] as String?) ?? PaymentStatus.belumBayar,
+      statusOrder: (d['statusOrder'] as String?) ?? OrderStatus.menungguBayar,
+      kodePesanan: (d['kodePesanan'] as String?) ?? '-',
+      tipePesanan: (d['tipePesanan'] as String?) ?? TipePesanan.makanDiTempat,
+      jamAmbil: (d['jamAmbil'] as String?) ?? 'Secepatnya',
+      expiresAt: _ts(d['expiresAt']),
+      createdAt: _ts(d['createdAt']) ?? DateTime.now(),
     );
   }
 
-  // Mengubah objek OrderModel menjadi Map untuk Firestore
-  Map<String, dynamic> toMap() {
-    return {
-      'userId': userId,
-      'kantinId': kantinId,
-      'items': items.map((item) => item.toMap()).toList(),
-      'total': total,
-      'metodeBayar': metodeBayar,
-      'statusBayar': statusBayar,
-      'statusOrder': statusOrder,
-      'kodePesanan': kodePesanan,
-      'tipePesanan': tipePesanan,
-      'jamAmbil': jamAmbil,
-      'expiresAt': expiresAt,
-      'createdAt': createdAt,
-    };
-  }
+  int get jumlahItem => items.fold<int>(0, (s, i) => s + i.qty);
+
+  /// Pesanan tunai yang masih menunggu dibayar di kasir.
+  bool get isMenungguTunai =>
+      metodeBayar == PaymentMethod.tunai &&
+      statusBayar == PaymentStatus.belumBayar &&
+      statusOrder == OrderStatus.menungguBayar;
+
+  /// Batas waktu tunai sudah lewat (diperiksa di aplikasi).
+  bool get isExpiredNow =>
+      isMenungguTunai &&
+      expiresAt != null &&
+      DateTime.now().isAfter(expiresAt!);
+
+  /// Status yang ditampilkan ke pengguna (memperhitungkan kedaluwarsa).
+  String get statusTampil => isExpiredNow ? OrderStatus.kedaluwarsa : statusOrder;
 }
