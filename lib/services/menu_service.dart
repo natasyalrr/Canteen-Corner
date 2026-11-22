@@ -20,7 +20,7 @@ class MenuService {
   ///         supaya layar tetap bisa didemokan.
   /// false = tampilkan apa adanya dari Firestore. Ubah ke false setelah data
   ///         awal diisi (lihat tool/README.md).
-  static const bool pakaiDataContoh = true;
+  static const bool pakaiDataContoh = false;
 
   /// Kategori menu yang dikenali aplikasi. Sama dengan chip kategori di
   /// Beranda dan dengan daftar yang diperiksa di firestore.rules.
