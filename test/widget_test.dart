@@ -1,30 +1,87 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+// Tes widget komponen UI yang dipakai bersama (tanpa Firebase).
+import 'package:canteen_corner/models/order_model.dart';
+import 'package:canteen_corner/theme/app_theme.dart';
+import 'package:canteen_corner/widgets/qty_stepper.dart';
+import 'package:canteen_corner/widgets/status_chip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:canteen_corner/main.dart';
+Widget bungkus(Widget child) => MaterialApp(
+      theme: AppTheme.light,
+      home: Scaffold(body: Center(child: child)),
+    );
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('StatusChip', () {
+    testWidgets('menampilkan label status dalam bahasa Indonesia',
+        (tester) async {
+      for (final s in OrderStatus.alur) {
+        await tester.pumpWidget(bungkus(StatusChip(status: s)));
+        expect(find.text(OrderStatus.label(s)), findsOneWidget, reason: s);
+      }
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    testWidgets('status gagal tampil dengan label masing-masing',
+        (tester) async {
+      await tester.pumpWidget(
+          bungkus(const StatusChip(status: OrderStatus.kedaluwarsa)));
+      expect(find.text('Kedaluwarsa'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+      await tester.pumpWidget(
+          bungkus(const StatusChip(status: OrderStatus.dibatalkan)));
+      expect(find.text('Dibatalkan'), findsOneWidget);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('status gagal berwarna sama dan berbeda dari status siap diambil', () {
+      expect(StatusChip.warna(OrderStatus.kedaluwarsa),
+          StatusChip.warna(OrderStatus.dibatalkan));
+      expect(StatusChip.warna(OrderStatus.siapDiambil),
+          isNot(StatusChip.warna(OrderStatus.dibatalkan)));
+    });
+  });
+
+  group('QtyStepper', () {
+    Widget stepper(ValueNotifier<int> nilai, {int min = 1, int max = 3}) {
+      return bungkus(ValueListenableBuilder<int>(
+        valueListenable: nilai,
+        builder: (context, v, _) => QtyStepper(
+          value: v,
+          min: min,
+          max: max,
+          onChanged: (x) => nilai.value = x,
+        ),
+      ));
+    }
+
+    testWidgets('tombol + dan - mengubah jumlah', (tester) async {
+      final nilai = ValueNotifier<int>(1);
+      await tester.pumpWidget(stepper(nilai));
+      expect(find.text('1'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+      expect(nilai.value, 2);
+      expect(find.text('2'), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.remove));
+      await tester.pump();
+      expect(nilai.value, 1);
+    });
+
+    testWidgets('tidak turun di bawah minimum', (tester) async {
+      final nilai = ValueNotifier<int>(1);
+      await tester.pumpWidget(stepper(nilai));
+      await tester.tap(find.byIcon(Icons.remove));
+      await tester.pump();
+      expect(nilai.value, 1);
+    });
+
+    testWidgets('tidak naik di atas maksimum (stok)', (tester) async {
+      final nilai = ValueNotifier<int>(3);
+      await tester.pumpWidget(stepper(nilai));
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+      expect(nilai.value, 3);
+    });
   });
 }
