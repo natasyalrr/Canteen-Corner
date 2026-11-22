@@ -1,0 +1,134 @@
+{
+  "kantins": [
+    {
+      "id": "kantin-pusat",
+      "nama": "Kantin Pusat",
+      "lokasi": "Gedung Pusat",
+      "jamBuka": "07.00 - 16.00"
+    },
+    {
+      "id": "kantin-fakultas-a",
+      "nama": "Kantin Fakultas A",
+      "lokasi": "Fakultas A",
+      "jamBuka": "08.00 - 15.00"
+    },
+    {
+      "id": "kantin-fakultas-b",
+      "nama": "Kantin Fakultas B",
+      "lokasi": "Fakultas B",
+      "jamBuka": "08.00 - 14.00"
+    }
+  ],
+  "menus": [
+    {
+      "id": "menu-nasi-goreng",
+      "kantinId": "kantin-pusat",
+      "nama": "Nasi Goreng",
+      "harga": 15000,
+      "kategori": "Makanan",
+      "stok": 20,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Nasi goreng spesial dengan telur dan sayuran."
+    },
+    {
+      "id": "menu-mie-ayam",
+      "kantinId": "kantin-pusat",
+      "nama": "Mie Ayam",
+      "harga": 12000,
+      "kategori": "Makanan",
+      "stok": 20,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Mie ayam dengan topping ayam dan sayuran."
+    },
+    {
+      "id": "menu-es-teh",
+      "kantinId": "kantin-fakultas-a",
+      "nama": "Es Teh",
+      "harga": 5000,
+      "kategori": "Minuman",
+      "stok": 50,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Minuman teh segar."
+    },
+    {
+      "id": "menu-kentang-goreng",
+      "kantinId": "kantin-fakultas-b",
+      "nama": "Kentang Goreng",
+      "harga": 10000,
+      "kategori": "Snack",
+      "stok": 15,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Kentang goreng renyah."
+    },
+    {
+      "id": "menu-ayam-geprek",
+      "kantinId": "kantin-fakultas-a",
+      "nama": "Ayam Geprek",
+      "harga": 18000,
+      "kategori": "Makanan",
+      "stok": 12,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Ayam crispy dengan sambal pedas."
+    },
+    {
+      "id": "menu-jus-alpukat",
+      "kantinId": "kantin-fakultas-b",
+      "nama": "Jus Alpukat",
+      "harga": 12000,
+      "kategori": "Minuman",
+      "stok": 10,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Jus alpukat segar."
+    },
+    {
+      "id": "menu-nasi-ayam",
+      "kantinId": "kantin-pusat",
+      "nama": "Nasi Ayam",
+      "harga": 17000,
+      "kategori": "Makanan",
+      "stok": 18,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Nasi dengan ayam goreng dan sambal."
+    },
+    {
+      "id": "menu-roti-bakar",
+      "kantinId": "kantin-fakultas-a",
+      "nama": "Roti Bakar",
+      "harga": 10000,
+      "kategori": "Snack",
+      "stok": 0,
+      "fotoUrl": "",
+      "tersedia": false,
+      "deskripsi": "Roti bakar dengan berbagai topping."
+    },
+    {
+      "id": "menu-es-jeruk",
+      "kantinId": "kantin-fakultas-b",
+      "nama": "Es Jeruk",
+      "harga": 6000,
+      "kategori": "Minuman",
+      "stok": 30,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Minuman jeruk segar."
+    },
+    {
+      "id": "menu-bakso",
+      "kantinId": "kantin-pusat",
+      "nama": "Bakso",
+      "harga": 14000,
+      "kategori": "Makanan",
+      "stok": 25,
+      "fotoUrl": "",
+      "tersedia": true,
+      "deskripsi": "Bakso dengan kuah hangat."
+    }
+  ]
+}
