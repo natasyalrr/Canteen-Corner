@@ -1,0 +1,149 @@
+rules_version = '2';
+
+// CanteenCorner - Firestore Security Rules
+// Peran ada di users/{uid}.role: 'mahasiswa' atau 'penjual'.
+// Penjual hanya boleh mengelola kantin yang ownerUid-nya sama dengan uid-nya.
+//
+// Terapkan lewat Firebase Console > Firestore Database > Rules > Publish,
+// atau: firebase deploy --only firestore:rules
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- fungsi bantu ----------
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isPenjual() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'penjual';
+    }
+
+    // Penjual yang sedang login adalah pemilik kantin [kantinId].
+    function ownsKantin(kantinId) {
+      return isPenjual()
+        && exists(/databases/$(database)/documents/kantins/$(kantinId))
+        && get(/databases/$(database)/documents/kantins/$(kantinId)).data.ownerUid == request.auth.uid;
+    }
+
+    // Aturan yang sama dengan MenuService.pesanKesalahan di aplikasi.
+    function validMenu(d) {
+      return d.nama is string && d.nama.size() > 0 && d.nama.size() <= 100
+        && d.harga is int && d.harga > 0
+        && d.stok is int && d.stok >= 0
+        && d.kategori in ['Makanan', 'Minuman', 'Snack']
+        && d.tersedia is bool
+        && d.kantinId is string;
+    }
+
+    // ---------- users ----------
+
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+
+      // Daftar: dokumen milik sendiri, peran hanya mahasiswa atau penjual.
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.role in ['mahasiswa', 'penjual'];
+
+      // Boleh ubah profil, tetapi peran dan uid tidak boleh berubah.
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.uid == resource.data.uid;
+
+      allow delete: if false;
+    }
+
+    // ---------- kantins ----------
+
+    match /kantins/{kantinId} {
+      allow read: if signedIn();
+
+      allow create: if isPenjual()
+        && request.resource.data.ownerUid == request.auth.uid;
+
+      allow update: if ownsKantin(kantinId)
+        && request.resource.data.ownerUid == resource.data.ownerUid;
+
+      allow delete: if ownsKantin(kantinId);
+    }
+
+    // ---------- menus ----------
+
+    match /menus/{menuId} {
+      allow read: if signedIn();
+
+      allow create: if validMenu(request.resource.data)
+        && ownsKantin(request.resource.data.kantinId);
+
+      // kantinId tidak boleh dipindah ke kantin lain.
+      allow update: if validMenu(request.resource.data)
+        && request.resource.data.kantinId == resource.data.kantinId
+        && ownsKantin(resource.data.kantinId);
+
+      allow delete: if ownsKantin(resource.data.kantinId);
+    }
+
+    // ---------- orders ----------
+
+    match /orders/{orderId} {
+
+      // Mahasiswa hanya boleh membuat pesanan atas namanya sendiri, dengan
+      // status awal yang wajar (sesuai OrderService.createOrder).
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.items is list
+        && request.resource.data.items.size() > 0
+        && request.resource.data.total is int
+        && request.resource.data.total > 0
+        && request.resource.data.metodeBayar in ['qris', 'ewallet', 'transfer', 'tunai']
+        && request.resource.data.statusOrder in ['menunggu_bayar', 'dibayar']
+        && request.resource.data.statusBayar in ['belum_bayar', 'lunas'];
+
+      // Pemilik pesanan, atau penjual pemilik kantin tujuan pesanan.
+      // Catatan: kueri penjual harus memakai where('kantinId', isEqualTo: ...).
+      // Kalau ternyata ditolak untuk kueri daftar, ganti sementara dengan:
+      //   allow list: if isPenjual();
+      allow read: if signedIn()
+        && (resource.data.userId == request.auth.uid
+            || ownsKantin(resource.data.kantinId));
+
+      allow update: if signedIn()
+        && (mahasiswaMengubah() || penjualMengubah());
+
+      allow delete: if false;
+    }
+
+    // Mahasiswa pemilik: hanya batal (sebelum diproses) atau tandai
+    // kedaluwarsa (tunai yang belum dibayar dan sudah lewat expiresAt).
+    function mahasiswaMengubah() {
+      let lama = resource.data;
+      let baru = request.resource.data;
+      return lama.userId == request.auth.uid
+        && baru.diff(lama).affectedKeys().hasOnly(['statusOrder', 'statusBayar'])
+        && (
+          (baru.statusOrder == 'dibatalkan'
+            && lama.statusOrder in ['menunggu_bayar', 'dibayar'])
+          ||
+          (baru.statusOrder == 'kedaluwarsa'
+            && baru.statusBayar == 'kedaluwarsa'
+            && lama.statusBayar == 'belum_bayar'
+            && lama.expiresAt != null
+            && request.time > lama.expiresAt)
+        );
+    }
+
+    // Penjual pemilik kantin: ubah status pesanan dan status bayar saja.
+    function penjualMengubah() {
+      return ownsKantin(resource.data.kantinId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statusOrder', 'statusBayar'])
+        && request.resource.data.statusOrder in
+             ['dibayar', 'diproses', 'siap_diambil', 'selesai', 'dibatalkan', 'kedaluwarsa'];
+    }
+  }
+}
