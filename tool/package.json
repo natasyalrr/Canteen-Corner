@@ -1,0 +1,11 @@
+{
+  "name": "canteencorner-tools",
+  "private": true,
+  "description": "Alat bantu pengembangan CanteenCorner (isi data awal Firestore)",
+  "scripts": {
+    "seed": "node seed_firestore.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
