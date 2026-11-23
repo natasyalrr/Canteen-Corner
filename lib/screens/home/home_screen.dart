@@ -1,17 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+
+import '../../models/kantin_model.dart';
+import '../../services/menu_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/jam_buka.dart';
 import '../../widgets/cart_icon_button.dart';
 import '../cart/keranjang_screen.dart';
 import '../menu/menu_screen.dart';
 import '../order/riwayat_pesanan_view.dart';
-
-class Kantin {
-  final String nama;
-  final String jamBuka;
-  final bool buka;
-
-  const Kantin({required this.nama, required this.jamBuka, required this.buka});
-}
+import '../profile/profil_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -26,21 +25,58 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<String> _categories = ['Semua', 'Makanan', 'Minuman', 'Snack'];
 
-  // TODO: ganti dengan data dari Firestore
-  final List<Kantin> _kantins = const [
-    Kantin(nama: 'Kantin Pusat', jamBuka: '07.00 - 16.00', buka: true),
-    Kantin(nama: 'Kantin Fakultas A', jamBuka: '08.00 - 15.00', buka: true),
-    Kantin(nama: 'Kantin Fakultas B', jamBuka: '08.00 - 14.00', buka: false),
-  ];
+  // Data kantin dari Firestore (koleksi `kantins`).
+  late final Stream<List<KantinModel>> _kantinStream =
+      MenuService().streamKantins();
+
+  Widget _sapaan() {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      return const Text(
+        'Halo!',
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+      );
+    }
+    return StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+      stream:
+          FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
+      builder: (context, snap) {
+        final nama = (snap.data?.data()?['nama'] as String?)?.trim() ?? '';
+        return Text(
+          nama.isEmpty ? 'Halo!' : 'Halo, $nama',
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+        );
+      },
+    );
+  }
+
+  Widget _daftarKantin() {
+    return StreamBuilder<List<KantinModel>>(
+      stream: _kantinStream,
+      builder: (context, snap) {
+        if (!snap.hasData) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final kantins = snap.data!;
+        if (kantins.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(child: Text('Belum ada kantin yang terdaftar')),
+          );
+        }
+        return Column(children: kantins.map(_buildKantinCard).toList());
+      },
+    );
+  }
 
   Widget _buildHome() {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        const Text(
-          'Halo, Mahasiswa',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-        ),
+        _sapaan(),
         const Text('Mau makan apa hari ini?'),
         const SizedBox(height: 16),
         TextField(
@@ -82,12 +118,12 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
-        ..._kantins.map(_buildKantinCard),
+        _daftarKantin(),
       ],
     );
   }
 
-  Widget _buildKantinCard(Kantin k) {
+  Widget _buildKantinCard(KantinModel k) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => Navigator.push(
@@ -100,7 +136,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _kantinCardBody(Kantin k) {
+  Widget _kantinCardBody(KantinModel k) {
+    final buka = JamBuka.sedangBuka(k.jamBuka);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -112,9 +150,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             width: 90,
             height: 90,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.accent,
-              borderRadius: const BorderRadius.horizontal(
+              borderRadius: BorderRadius.horizontal(
                 left: Radius.circular(16),
               ),
             ),
@@ -132,23 +170,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text('Buka ${k.jamBuka}'),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 3,
+                if (k.lokasi.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(k.lokasi, style: const TextStyle(fontSize: 13)),
+                ],
+                if (k.jamBuka.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text('Buka ${k.jamBuka}'),
+                ],
+                if (buka != null) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: buka ? AppColors.cta : Colors.grey,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      buka ? 'Buka' : 'Tutup',
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
                   ),
-                  decoration: BoxDecoration(
-                    color: k.buka ? AppColors.cta : Colors.grey,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    k.buka ? 'Buka' : 'Tutup',
-                    style: const TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ),
+                ],
               ],
             ),
           ),
@@ -176,7 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
               MaterialPageRoute(builder: (_) => const MenuScreen()),
             ),
           ),
-        _ => Center(child: Text('Halaman ${titles[_navIndex]} menyusul')),
+        _ => const ProfilView(),
       },
       bottomNavigationBar: NavigationBar(
         selectedIndex: _navIndex,
