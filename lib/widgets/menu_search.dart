@@ -5,11 +5,13 @@ import '../theme/app_theme.dart';
 class MenuSearch extends StatelessWidget {
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
+  final String hintText;
 
   const MenuSearch({
     super.key,
     required this.controller,
     required this.onChanged,
+    this.hintText = 'Cari makanan, minuman, atau kantin',
   });
 
   @override
@@ -19,7 +21,7 @@ class MenuSearch extends StatelessWidget {
       onChanged: onChanged,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: 'Cari makanan, minuman, atau kantin',
+        hintText: hintText,
         hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
         prefixIcon: const Icon(Icons.search, color: AppColors.primary),
         suffixIcon: IconButton(
