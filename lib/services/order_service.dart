@@ -14,7 +14,8 @@ class OrderService {
 
   final _db = FirebaseFirestore.instance;
 
-  CollectionReference<Map<String, dynamic>> get _col => _db.collection('orders');
+  CollectionReference<Map<String, dynamic>> get _col =>
+      _db.collection('orders');
 
   /// Membuat pesanan dan mengembalikan id dokumennya.
   /// Pembayaran masih simulasi: metode digital langsung "lunas",
@@ -55,13 +56,37 @@ class OrderService {
 
   /// Semua pesanan milik pengguna yang sedang login, terbaru di atas.
   /// Diurutkan di aplikasi supaya tidak butuh composite index Firestore.
+  /// Semua pesanan milik pengguna yang sedang login.
   Stream<List<OrderModel>> streamPesananSaya() {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
     return _col.where('userId', isEqualTo: uid).snapshots().map((s) {
-      final list =
-          s.docs.map((d) => OrderModel.fromMap(d.data(), d.id)).toList();
+      final list = s.docs
+          .map((d) => OrderModel.fromMap(d.data(), d.id))
+          .toList();
+
       list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
       return list;
+    });
+  } // Penutup streamPesananSaya harus ada di sini!
+
+  /// Mengambil seluruh pesanan yang ditujukan ke kantin penjual.
+  Stream<List<OrderModel>> streamPesananMasuk(String kantinId) {
+    if (kantinId.isEmpty) {
+      throw ArgumentError('kantinId tidak boleh kosong');
+    }
+
+    return _col.where('kantinId', isEqualTo: kantinId).snapshots().map((
+      snapshot,
+    ) {
+      final daftarPesanan = snapshot.docs
+          .map((doc) => OrderModel.fromMap(doc.data(), doc.id))
+          .toList();
+
+      daftarPesanan.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      return daftarPesanan;
     });
   }
 
@@ -90,6 +115,132 @@ class OrderService {
 
   Future<void> batalkan(String id) {
     return _col.doc(id).update({'statusOrder': OrderStatus.dibatalkan});
+  }
+
+  /// Penjual mengonfirmasi pembayaran tunai.
+  /// Jika sudah melewati expiresAt, pesanan ditandai kedaluwarsa.
+  Future<void> confirmCashPayment(String orderId) async {
+    final ref = _col.doc(orderId);
+
+    final berhasil = await _db.runTransaction<bool>((transaction) async {
+      final snapshot = await transaction.get(ref);
+      final data = snapshot.data();
+
+      if (!snapshot.exists || data == null) {
+        throw StateError('Pesanan tidak ditemukan.');
+      }
+
+      if (data['metodeBayar'] != PaymentMethod.tunai) {
+        throw StateError('Pesanan ini bukan pembayaran tunai.');
+      }
+
+      if (data['statusBayar'] != PaymentStatus.belumBayar ||
+          data['statusOrder'] != OrderStatus.menungguBayar) {
+        throw StateError('Pesanan tidak sedang menunggu pembayaran.');
+      }
+
+      final batasWaktu = data['expiresAt'];
+
+      if (batasWaktu is! Timestamp) {
+        throw StateError('Batas waktu pembayaran tidak ditemukan.');
+      }
+
+      // Periksa apakah batas waktu pembayaran sudah lewat.
+      if (DateTime.now().isAfter(batasWaktu.toDate())) {
+        transaction.update(ref, {
+          'statusBayar': PaymentStatus.kedaluwarsa,
+          'statusOrder': OrderStatus.kedaluwarsa,
+        });
+
+        return false;
+      }
+
+      // Pembayaran tunai berhasil dikonfirmasi penjual.
+      transaction.update(ref, {
+        'statusBayar': PaymentStatus.lunas,
+        'statusOrder': OrderStatus.dibayar,
+      });
+
+      return true;
+    });
+
+    if (!berhasil) {
+      throw StateError(
+        'Pembayaran sudah melewati batas waktu dan pesanan kedaluwarsa.',
+      );
+    }
+  }
+
+  /// Fungsi bantuan untuk mengubah status pesanan oleh penjual.
+  /// Hanya pesanan yang memenuhi status sebelumnya yang bisa diubah.
+  Future<void> _ubahStatusPenjual({
+    required String orderId,
+    required List<String> statusDiizinkan,
+    required String statusBaru,
+    bool wajibLunas = true,
+  }) async {
+    final ref = _col.doc(orderId);
+
+    await _db.runTransaction((transaction) async {
+      final snapshot = await transaction.get(ref);
+      final data = snapshot.data();
+
+      if (!snapshot.exists || data == null) {
+        throw StateError('Pesanan tidak ditemukan.');
+      }
+
+      final statusLama = data['statusOrder'];
+      final statusBayar = data['statusBayar'];
+
+      // Memastikan perubahan status mengikuti alur pesanan.
+      if (!statusDiizinkan.contains(statusLama)) {
+        throw StateError('Status pesanan tidak sesuai untuk perubahan ini.');
+      }
+
+      // Pesanan harus lunas sebelum mulai diproses.
+      if (wajibLunas && statusBayar != PaymentStatus.lunas) {
+        throw StateError('Pesanan belum dibayar.');
+      }
+
+      transaction.update(ref, {'statusOrder': statusBaru});
+    });
+  }
+
+  /// Penjual mulai memasak pesanan.
+  Future<void> startCooking(String orderId) {
+    return _ubahStatusPenjual(
+      orderId: orderId,
+      statusDiizinkan: [OrderStatus.dibayar],
+      statusBaru: OrderStatus.diproses,
+    );
+  }
+
+  /// Penjual menandai pesanan sudah siap diambil.
+  Future<void> markReady(String orderId) {
+    return _ubahStatusPenjual(
+      orderId: orderId,
+      statusDiizinkan: [OrderStatus.diproses],
+      statusBaru: OrderStatus.siapDiambil,
+    );
+  }
+
+  /// Penjual menandai pesanan sudah selesai.
+  Future<void> completeOrder(String orderId) {
+    return _ubahStatusPenjual(
+      orderId: orderId,
+      statusDiizinkan: [OrderStatus.siapDiambil],
+      statusBaru: OrderStatus.selesai,
+    );
+  }
+
+  /// Penjual menolak pesanan yang belum diproses.
+  Future<void> rejectOrder(String orderId) {
+    return _ubahStatusPenjual(
+      orderId: orderId,
+      statusDiizinkan: [OrderStatus.menungguBayar, OrderStatus.dibayar],
+      statusBaru: OrderStatus.dibatalkan,
+      wajibLunas: false,
+    );
   }
 
   String _buatKode() => 'CC-${Random().nextInt(9000) + 1000}';
